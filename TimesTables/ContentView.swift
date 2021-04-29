@@ -52,10 +52,21 @@ struct ContentView: View {
                     Section(header: Text("How many questions do you want to try?")) {
                         Picker("Questions", selection: $selectedNumberOfQuestions) {
                             ForEach(0..<numberOfQuestions.count) {
-                                Text("\(self.numberOfQuestions[$0])!")
+                                Text("\(self.numberOfQuestions[$0])")
                             }
                         }
                         .pickerStyle(SegmentedPickerStyle())
+                        
+                    }
+                    
+                    Section(header: Text("What is the number you want to multiply by?")) {
+                        Picker("Multiplier", selection: $firstNumber) {
+                            ForEach(0..<10) {
+                                Text("\($0 + 3)")
+                            }
+                        }
+                        .pickerStyle(SegmentedPickerStyle())
+                        
                     }
                     
                     Text("Score: \(correctAnswers)")
