@@ -34,46 +34,71 @@ struct TimesTableQuestion: View {
 }
 
 struct ContentView: View {
-    @State private var promptingForSettings = false
+    @State private var promptingForSettings = true
     @State private var selectedNumberOfQuestions = 0
     @State private var correctAnswers = 0
-    @State private var firstNumber = 0
+    @State private var multiplier = 0
     @State private var secondNumber = 0
     
-    let numberOfQuestions = ["5", "10", "20", "All"]
-    let questions = [String]()
+    @State private var numberOfQuestions = ["5", "10", "20", "All"]
+    @State private var questions = [String]()
     
     var body: some View {
         NavigationView {
             Group {
-                VStack {
-                    Text("Time for math!")
-                    
-                    Section(header: Text("How many questions do you want to try?")) {
-                        Picker("Questions", selection: $selectedNumberOfQuestions) {
-                            ForEach(0..<numberOfQuestions.count) {
-                                Text("\(self.numberOfQuestions[$0])")
-                            }
-                        }
-                        .pickerStyle(SegmentedPickerStyle())
+                if promptingForSettings {
+                    VStack {
+                        Text("Time for math!")
                         
-                    }
-                    
-                    Section(header: Text("What is the number you want to multiply by?")) {
-                        Picker("Multiplier", selection: $firstNumber) {
-                            ForEach(0..<10) {
-                                Text("\($0 + 3)")
+                        Section(header: Text("How many questions do you want to try?")) {
+                            Picker("Questions", selection: $selectedNumberOfQuestions) {
+                                ForEach(0..<numberOfQuestions.count) {
+                                    Text("\(self.numberOfQuestions[$0])")
+                                }
                             }
+                            .pickerStyle(SegmentedPickerStyle())
+                            
                         }
-                        .pickerStyle(SegmentedPickerStyle())
                         
+                        Section(header: Text("What is the number you want to multiply by?")) {
+                            Picker("Multiplier", selection: $multiplier) {
+                                ForEach(0..<10) {
+                                    Text("\($0 + 3)")
+                                }
+                            }
+                            .pickerStyle(SegmentedPickerStyle())
+                            
+                        }
+                        
+                        Spacer()
+                        
+                        
+                        Button("Let's go!") {
+                            promptingForSettings.toggle()
+                            
+                            // play the game
+                        }
+                        .frame(maxWidth: 200, maxHeight: 50)
+                        .overlay(Rectangle().stroke(Color.black, lineWidth: 3))
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .font(.title)
+                        .padding()
+                        
+                        
+                        Text("Score: \(correctAnswers)")
                     }
-                    
-                    Text("Score: \(correctAnswers)")
+                    .navigationTitle("TimesTables")
                 }
-                .navigationTitle("TimesTables")
             }
         }
+    }
+    
+    func askTimesTablesQuestions(questions: Int, multiplier: Int) {
+        // take in the parameters and generate the questions, then shuffle the questions
+        // show the questions one at a time and prompt for an answer in a text field
+        // validate the answer and remove the question from the array; update score
+        // when there are no questions remaining, present summary and return to settings view
     }
 }
 
