@@ -20,27 +20,19 @@
 
 import SwiftUI
 
-struct TimesTableQuestion: View {
-    
-    var firstNumber: String
-    var secondNumber: String
-    
-    var body: some View {
-        Text("What is \(firstNumber) x \(secondNumber)?")
-            .font(.largeTitle)
-            .overlay(Capsule().stroke(Color.black, lineWidth: 1))
-            .shadow(color: .black, radius: 2)
-    }
-}
-
 struct ContentView: View {
-    @State private var promptingForSettings = false
+    @State private var promptingForSettings = true
+    @State private var showingResultAlert = false
+    @State private var scoreMessage = ""
+    
     @State private var selectedNumberOfQuestions = 0
+    @State private var selectedMultiplier = 0
     @State private var score = 0
-    @State private var multiplier = 0
     
     @State private var numberOfQuestions = ["5", "10", "20", "All"]
     @State private var questions = [String]()
+    @State private var questionsToAskThisRound = 0
+    @State private var currentlyShownQuestion = 0
     @State private var correctAnswers = [Int]()
     @State private var currentQuestion = ""
     @State private var currentAnswer = ""
@@ -63,7 +55,7 @@ struct ContentView: View {
                         }
                         
                         Section(header: Text("Which times tables do you want to do?")) {
-                            Picker("Multiplier", selection: $multiplier) {
+                            Picker("Multiplier", selection: $selectedMultiplier) {
                                 ForEach(0..<12) {
                                     Text("\($0 + 1)")
                                 }
@@ -76,7 +68,7 @@ struct ContentView: View {
                         
                         Button("Let's go!") {
                             promptingForSettings.toggle()
-                            // play the game
+                            askTimesTablesQuestions(numberOfQuestions: selectedNumberOfQuestions)
                         }
                         .frame(maxWidth: 200, maxHeight: 50)
                         .overlay(Rectangle().stroke(Color.black, lineWidth: 3))
@@ -105,7 +97,7 @@ struct ContentView: View {
                             .padding(20)
                         
                         Button("Check my answer") {
-                            // validate answer
+                            checkAnswerTapped()
                         }
                         .frame(maxWidth: 240, maxHeight: 50)
                         .overlay(Rectangle().stroke(Color.black, lineWidth: 3))
@@ -114,48 +106,38 @@ struct ContentView: View {
                         .font(.title)
                         .padding()
             
+                        Text("Question \(currentlyShownQuestion + 1) of \(numberOfQuestions[selectedNumberOfQuestions])")
+                    }
+                    .alert(isPresented: $showingResultAlert) {
+                        Alert(title: Text("Result"), message: Text(scoreMessage), dismissButton: .default(Text("Continue")) {
+                            self.showingResultAlert.toggle()
+                        })
                     }
                 }
             }
         }
     }
     
-    func askTimesTablesQuestions(numberOfQuestions: Int, multiplier: Int) {
-        // take in the parameters and generate the questions, then shuffle the questions
-        // show the questions one at a time and prompt for an answer in a text field
-        // validate the answer and remove the question from the array; update score
-        // when there are no questions remaining, present summary and return to settings view
-        
-        
+    func askTimesTablesQuestions(numberOfQuestions: Int) {
         switch numberOfQuestions {
         case 0:
             generateQuestions(number: 5)
-            
-            for i in 1...5 {
-                currentQuestion = questions[i]
-            }
+            questionsToAskThisRound = 5
             
         case 1:
             generateQuestions(number: 10)
-            
-            for i in 1...10 {
-                currentQuestion = questions[i]
-            }
+            questionsToAskThisRound = 10
             
         case 2:
             generateQuestions(number: 20)
-            
-            for i in 1...20 {
-                currentQuestion = questions[i]
-            }
+            questionsToAskThisRound = 20
             
         default:
             generateQuestions(number: 30)
-            
-            for i in 1...30 {
-                currentQuestion = questions[i]
-            }
+            questionsToAskThisRound = 30
         }
+        
+        currentQuestion = questions[currentlyShownQuestion]
     }
     
     func generateQuestions(number: Int) {
@@ -164,12 +146,36 @@ struct ContentView: View {
         for i in 1...number {
             multiplicands.shuffle()
             let multiplicand = multiplicands[i]
-            let correctAnswer = multiplier * multiplicand
+            let correctAnswer = (selectedMultiplier + 1) * multiplicand
             correctAnswers.append(correctAnswer)
-            let question = "What is \(multiplier) times \(multiplicand)?"
+            let question = "What is \(selectedMultiplier + 1) times \(multiplicand)?"
             questions.append(question)
         }
+    }
+    
+    func checkAnswerTapped() {
+        let numberToBeChecked = Int(currentAnswer) ?? 0
         
+        if numberToBeChecked == correctAnswers[currentlyShownQuestion] {
+            scoreMessage = "Correct!"
+            score += 1
+        } else {
+            scoreMessage = "Wrong. The correct answer is \(correctAnswers[currentlyShownQuestion])"
+        }
+        
+        showingResultAlert = true
+        currentlyShownQuestion += 1
+        questionsToAskThisRound -= 1
+        
+        if questionsToAskThisRound == 0 {
+            promptingForSettings = true
+            questions.removeAll()
+            correctAnswers.removeAll()
+            
+            return
+        }
+
+        currentQuestion = questions[currentlyShownQuestion]
     }
     
 }
