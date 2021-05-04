@@ -33,6 +33,7 @@ struct ContentView: View {
     @State private var questions = [String]()
     @State private var questionsToAskThisRound = 0
     @State private var currentlyShownQuestion = 0
+    @State private var correctThisRound = 0
     @State private var correctAnswers = [Int]()
     @State private var currentQuestion = ""
     @State private var currentAnswer = ""
@@ -42,77 +43,58 @@ struct ContentView: View {
             Group {
                 if promptingForSettings {
                     VStack {
-                        Text("Time for math!")
-                        
-                        Section(header: Text("How many questions do you want to try?")) {
-                            Picker("Questions", selection: $selectedNumberOfQuestions) {
-                                ForEach(0..<numberOfQuestions.count) {
-                                    Text("\(self.numberOfQuestions[$0])")
+                        Form {
+                            Section(header: Text("How many questions do you want to try?")) {
+                                Picker("Questions", selection: $selectedNumberOfQuestions) {
+                                    ForEach(0..<numberOfQuestions.count) {
+                                        Text("\(self.numberOfQuestions[$0])")
+                                    }
                                 }
+                                .pickerStyle(SegmentedPickerStyle())
                             }
-                            .pickerStyle(SegmentedPickerStyle())
                             
-                        }
-                        
-                        Section(header: Text("Which times tables do you want to do?")) {
-                            Picker("Multiplier", selection: $selectedMultiplier) {
-                                ForEach(0..<12) {
-                                    Text("\($0 + 1)")
+                            Section(header: Text("Which times tables do you want to do?")) {
+                                Picker("Multiplier", selection: $selectedMultiplier) {
+                                    ForEach(0..<12) {
+                                        Text("\($0 + 1)")
+                                    }
                                 }
+                                .pickerStyle(SegmentedPickerStyle())
                             }
-                            .pickerStyle(SegmentedPickerStyle())
                             
+                            Button("Let's go!") {
+                                askTimesTablesQuestions(numberOfQuestions: selectedNumberOfQuestions)
+                                promptingForSettings = false
+                            }
                         }
                         
-                        Spacer()
-                        
-                        Button("Let's go!") {
-                            askTimesTablesQuestions(numberOfQuestions: selectedNumberOfQuestions)
-                            promptingForSettings = false
-                        }
-                        .frame(maxWidth: 200, maxHeight: 50)
-                        .overlay(Rectangle().stroke(Color.black, lineWidth: 3))
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .font(.title)
-                        .padding()
-                        
-                        
-                        Text("Score: \(score)")
+                    Text("Score: \(score)")
                     }
                 }
                     
                 else {
                     VStack {
-                        Text("Here come the questions!")
-                            .font(.largeTitle)
-                            .padding(50)
+                        Form {
+                            Text("Question \(currentlyShownQuestion + 1) of \(numberOfQuestions[selectedNumberOfQuestions])")
                             
-                        Text("\(currentQuestion)")
-                            .font(.title2)
-                            .padding(50)
-                            
-                        TextField("Your answer", text: $currentAnswer)
-                            .keyboardType(.decimalPad)
-                            .padding(20)
-                        
-                        Button("Check my answer") {
-                            checkAnswerTapped()
-                        }
-                        .frame(maxWidth: 240, maxHeight: 50)
-                        .overlay(Rectangle().stroke(Color.black, lineWidth: 3))
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .font(.title)
-                        .padding()
-            
-                        Text("Question \(currentlyShownQuestion + 1) of \(numberOfQuestions[selectedNumberOfQuestions])")
+                            Section {
+                                Text("\(currentQuestion)")
+                                    .font(.title2)
+                                    
+                                TextField("Your answer", text: $currentAnswer)
+                                    .keyboardType(.decimalPad)
+                                
+                                Button("Check my answer") {
+                                    checkAnswerTapped()
+                                }
+                            }
                     }
                     .alert(isPresented: $showingResultAlert) {
                         Alert(title: Text("Result"), message: Text(scoreMessage), dismissButton: .default(Text("Continue")) {
                             self.showingResultAlert = false
                             nextQuestion()
                         })
+                    }
                     }
                 }
             }
@@ -159,10 +141,11 @@ struct ContentView: View {
         let numberToBeChecked = Int(currentAnswer) ?? 0
         
         if numberToBeChecked == correctAnswers[currentlyShownQuestion] {
-            scoreMessage = "Correct!"
+            correctThisRound += 1
             score += 1
+            scoreMessage = "Correct! You've got \(correctThisRound) out of \(currentlyShownQuestion + 1) this round."
         } else {
-            scoreMessage = "Wrong. The correct answer is \(correctAnswers[currentlyShownQuestion])."
+            scoreMessage = "Wrong. The correct answer is \(correctAnswers[currentlyShownQuestion]). You've got \(correctThisRound) out of \(currentlyShownQuestion + 1) this round."
         }
         
         showingResultAlert = true
@@ -178,6 +161,7 @@ struct ContentView: View {
             correctAnswers.removeAll()
             currentlyShownQuestion = 0
             questionsToAskThisRound = 0
+            correctThisRound = 0
             
             return
         }
