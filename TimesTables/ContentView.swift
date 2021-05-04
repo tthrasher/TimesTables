@@ -111,6 +111,7 @@ struct ContentView: View {
                     .alert(isPresented: $showingResultAlert) {
                         Alert(title: Text("Result"), message: Text(scoreMessage), dismissButton: .default(Text("Continue")) {
                             self.showingResultAlert = false
+                            nextQuestion()
                         })
                     }
                 }
@@ -168,7 +169,9 @@ struct ContentView: View {
         currentlyShownQuestion += 1
         questionsToAskThisRound -= 1
         currentAnswer = ""
-        
+    }
+    
+    func nextQuestion() {
         if questionsToAskThisRound == 0 {
             promptingForSettings = true
             questions.removeAll()
