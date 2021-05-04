@@ -67,8 +67,8 @@ struct ContentView: View {
                         Spacer()
                         
                         Button("Let's go!") {
-                            promptingForSettings.toggle()
                             askTimesTablesQuestions(numberOfQuestions: selectedNumberOfQuestions)
+                            promptingForSettings = false
                         }
                         .frame(maxWidth: 200, maxHeight: 50)
                         .overlay(Rectangle().stroke(Color.black, lineWidth: 3))
@@ -110,11 +110,12 @@ struct ContentView: View {
                     }
                     .alert(isPresented: $showingResultAlert) {
                         Alert(title: Text("Result"), message: Text(scoreMessage), dismissButton: .default(Text("Continue")) {
-                            self.showingResultAlert.toggle()
+                            self.showingResultAlert = false
                         })
                     }
                 }
             }
+            .navigationTitle("TimesTables")
         }
     }
     
@@ -160,17 +161,20 @@ struct ContentView: View {
             scoreMessage = "Correct!"
             score += 1
         } else {
-            scoreMessage = "Wrong. The correct answer is \(correctAnswers[currentlyShownQuestion])"
+            scoreMessage = "Wrong. The correct answer is \(correctAnswers[currentlyShownQuestion])."
         }
         
         showingResultAlert = true
         currentlyShownQuestion += 1
         questionsToAskThisRound -= 1
+        currentAnswer = ""
         
         if questionsToAskThisRound == 0 {
             promptingForSettings = true
             questions.removeAll()
             correctAnswers.removeAll()
+            currentlyShownQuestion = 0
+            questionsToAskThisRound = 0
             
             return
         }
